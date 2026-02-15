@@ -1,0 +1,27 @@
+targets:
+  - id: miami_dentists
+    query: "dentists in miami fl"
+    country: USA
+    state: Florida
+    city: Miami
+    niche: dentists
+    limit: 20
+    shard: A
+
+  - id: tampa_med_spa
+    query: "med spa in tampa fl"
+    country: USA
+    state: Florida
+    city: Tampa
+    niche: med_spa
+    limit: 20
+    shard: B
+
+  - id: orlando_roofing
+    query: "roofing company in orlando fl"
+    country: USA
+    state: Florida
+    city: Orlando
+    niche: roofing
+    limit: 20
+    shard: C
