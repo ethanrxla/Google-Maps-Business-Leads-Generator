@@ -113,3 +113,37 @@ def test_coverage_percentages_smoke():
         "email": 50.0,
         "website": 75.0,
     }
+
+
+def test_before_after_coverage_improves_after_patch_smoke():
+    verified_rows = [
+        {"address": "", "city": "", "phone": "", "email": "", "website": ""},
+        {"address": "A", "city": "", "phone": "", "email": "", "website": ""},
+    ]
+    candidates = [
+        {
+            "address": "1 Main St",
+            "city": "Miami",
+            "phone_raw": "555-0100",
+            "email_raw": "lead@example.com",
+            "website": "https://example.com",
+        }
+    ]
+
+    before = Counter()
+    after = Counter()
+    for row in verified_rows:
+        for field in ("address", "city", "phone", "email", "website"):
+            before[field] += int(bool((row.get(field) or "").strip()))
+        patched, _ = enrich_verified_row_from_candidates(row, candidates)
+        for field in ("address", "city", "phone", "email", "website"):
+            after[field] += int(bool((patched.get(field) or "").strip()))
+
+    before_pct = _coverage_percentages(before, total_rows=len(verified_rows))
+    after_pct = _coverage_percentages(after, total_rows=len(verified_rows))
+
+    assert after_pct["address"] >= before_pct["address"]
+    assert after_pct["city"] > before_pct["city"]
+    assert after_pct["phone"] > before_pct["phone"]
+    assert after_pct["email"] > before_pct["email"]
+    assert after_pct["website"] > before_pct["website"]
