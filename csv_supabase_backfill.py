@@ -45,6 +45,31 @@ def normalize_slug(text: str) -> str:
     return text
 
 
+def dedupe_key(name_normalized: str, website: str | None) -> tuple[str, str]:
+    return ((name_normalized or "").strip().lower(), (website or "").strip().lower())
+
+
+def _fetch_existing_key_set(client, table: str) -> set[tuple[str, str]]:
+    keys: set[tuple[str, str]] = set()
+    start = 0
+    page_size = 1000
+    while True:
+        rows = (
+            client.table(table)
+            .select("name_normalized,website")
+            .range(start, start + page_size - 1)
+            .execute()
+            .data
+            or []
+        )
+        for row in rows:
+            keys.add(dedupe_key(row.get("name_normalized") or "", row.get("website")))
+        if len(rows) < page_size:
+            break
+        start += page_size
+    return keys
+
+
 def map_source(raw: str) -> tuple[str, str | None]:
     s = (raw or "").strip().lower()
     if not s:
@@ -158,6 +183,10 @@ def run() -> dict[str, Any]:
     candidate_ids_by_name = defaultdict(list)
     report: dict[str, Any] = {"candidates": {}, "verified_leads": {}}
 
+    # Prevent duplicate growth across repeated backfill runs.
+    existing_candidate_keys = _fetch_existing_key_set(client, "candidates")
+    existing_verified_keys = _fetch_existing_key_set(client, "verified_leads")
+
     cand_batch_id = create_batch_run(client, "city_sweep", {"job": "csv_backfill_candidates", "file": str(PIPELINE_CSV)})
     log_event(client, cand_batch_id, "import_started", {"table": "candidates", "file": str(PIPELINE_CSV)})
 
@@ -198,9 +227,15 @@ def run() -> dict[str, Any]:
                 if status_reason:
                     cand_reason_counts[status_reason] += 1
 
+                key = dedupe_key(name_normalized, mapped["website"])
+                if key in existing_candidate_keys:
+                    cand_reason_counts["duplicate_key_skipped"] += 1
+                    continue
+
                 try:
                     ins = client.table("candidates").insert(mapped).execute().data[0]
                     cand_inserted += 1
+                    existing_candidate_keys.add(key)
                     candidate_ids_by_name[name_normalized].append(ins["id"])
                 except Exception as e:
                     cand_rejected += 1
@@ -272,7 +307,7 @@ def run() -> dict[str, Any]:
                 candidate_rows: list[dict[str, Any]] = []
                 for candidate_id in candidate_ids:
                     if candidate_id not in candidate_cache:
-                        fetched = client.table("candidates").select("id,address,city,phone_raw,phone,email_raw,email,website").eq("id", candidate_id).limit(1).execute().data
+                        fetched = client.table("candidates").select("id,address,city,phone_raw,email_raw,website").eq("id", candidate_id).limit(1).execute().data
                         candidate_cache[candidate_id] = fetched[0] if fetched else None
                     cached = candidate_cache.get(candidate_id)
                     if cached:
@@ -333,9 +368,15 @@ def run() -> dict[str, Any]:
                 if (row.get("verification_status") or "").strip().lower() != "verified":
                     ver_reason_counts["verification_status_not_verified"] += 1
 
+                verified_key = dedupe_key(name_normalized, mapped["website"])
+                if verified_key in existing_verified_keys:
+                    ver_reason_counts["duplicate_key_skipped"] += 1
+                    continue
+
                 try:
                     client.table("verified_leads").insert(mapped).execute()
                     ver_inserted += 1
+                    existing_verified_keys.add(verified_key)
                 except Exception as e:
                     ver_rejected += 1
                     ver_reason_counts[f"insert_error:{type(e).__name__}"] += 1
