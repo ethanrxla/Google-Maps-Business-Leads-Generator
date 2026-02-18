@@ -1,0 +1,12 @@
+# Florists and flower shops
+batch_type: city_sweep
+city: San Antonio
+state: TX
+country: US
+niche: florists
+query: "florists and flower shops in San Antonio TX"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

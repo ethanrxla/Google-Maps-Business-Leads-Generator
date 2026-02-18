@@ -1,0 +1,54 @@
+qualification_tiers:
+  hot_lead:
+    min_score: 80
+    max_score: 100
+    color: "#FF6B6B"
+    action: "Immediate Outreach"
+    
+  warm_lead:
+    min_score: 60
+    max_score: 79
+    color: "#FFD166"
+    action: "Nurture Sequence"
+    
+  cold_lead:
+    min_score: 40
+    max_score: 59
+    color: "#118AB2"
+    action: "Newsletter"
+    
+  unqualified:
+    min_score: 0
+    max_score: 39
+    color: "#073B4C"
+    action: "Archive"
+
+department_priority:
+  - "executive"
+  - "sales"
+  - "marketing"
+  - "engineering"
+  - "it"
+  - "finance"
+  - "hr"
+
+job_title_keywords:
+  executive:
+    - "ceo"
+    - "cto"
+    - "cfo"
+    - "vp"
+    - "director"
+    - "head of"
+    
+  management:
+    - "manager"
+    - "lead"
+    - "senior"
+    - "principal"
+    
+  individual:
+    - "engineer"
+    - "developer"
+    - "analyst"
+    - "specialist"

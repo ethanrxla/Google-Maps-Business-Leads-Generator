@@ -1,0 +1,10 @@
+requests
+beautifulsoup4
+python-dotenv
+google-api-python-client
+gspread
+oauth2client
+stripe
+fastapi
+httpx
+supabase

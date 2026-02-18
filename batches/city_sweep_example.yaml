@@ -1,0 +1,11 @@
+batch_type: city_sweep
+city: Charlotte
+state: NC
+country: US
+niche: med_spa
+query: "med spas in Charlotte NC"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

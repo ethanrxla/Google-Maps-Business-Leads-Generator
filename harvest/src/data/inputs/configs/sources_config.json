@@ -1,0 +1,34 @@
+{
+    "sources": {
+      "google": {
+        "enabled": true,
+        "limit": 100,
+        "rate_limit": 2
+      },
+      "bing": {
+        "enabled": true,
+        "limit": 100,
+        "rate_limit": 2
+      },
+      "linkedin": {
+        "enabled": true,
+        "limit": 200,
+        "rate_limit": 3
+      },
+      "twitter": {
+        "enabled": false,
+        "limit": 50,
+        "rate_limit": 5
+      },
+      "github": {
+        "enabled": true,
+        "limit": 100,
+        "rate_limit": 2
+      }
+    },
+    "dns": {
+      "bruteforce": true,
+      "wordlist": "/usr/share/seclists/Discovery/DNS/subdomains-top1million-5000.txt",
+      "threads": 10
+    }
+  }

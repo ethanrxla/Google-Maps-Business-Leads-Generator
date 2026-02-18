@@ -1,0 +1,12 @@
+# Childcare and preschools — daycares, early learning
+batch_type: city_sweep
+city: Raleigh
+state: NC
+country: US
+niche: childcare
+query: "childcare and preschools in Raleigh NC"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

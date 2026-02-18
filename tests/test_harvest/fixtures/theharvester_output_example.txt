@@ -1,0 +1,8 @@
+Hosts found:
+www.example.com:93.184.216.34
+api.example.com:93.184.216.35
+
+Emails found:
+info@example.com
+sales@example.com
+contact@sub.example.org

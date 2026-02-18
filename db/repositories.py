@@ -13,6 +13,7 @@ import logging
 from typing import Any, Optional
 
 from db.supabase_client import get_client
+from pipeline.models import normalize_source
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +95,7 @@ def _validate_candidate(candidate: dict) -> None:
             raise RepositoryError(
                 f"Candidate missing required field: {field}"
             )
+    candidate["source"] = normalize_source(candidate["source"])
     src = candidate["source"]
     if src not in VALID_SOURCES:
         raise RepositoryError(
@@ -206,3 +208,217 @@ def count_candidates(status: Optional[str] = None) -> int:
         query = query.eq("status", status)
     result = query.execute()
     return result.count or 0
+
+
+# ---------------------------------------------------------------------------
+# verified_leads
+# ---------------------------------------------------------------------------
+
+def insert_verified_lead(lead: dict) -> dict:
+    """Insert a single verified lead. Returns the inserted row."""
+    for field in ("name", "name_normalized"):
+        if not lead.get(field):
+            raise RepositoryError(f"Verified lead missing required field: {field}")
+    client = get_client()
+    result = client.table("verified_leads").insert(lead).execute()
+    return _safe_first(result.data, f"verified_leads insert name={lead.get('name', '?')}")
+
+
+def insert_verified_leads_batch(leads: list[dict]) -> list[dict]:
+    """Insert multiple verified leads in one request."""
+    if not leads:
+        return []
+    for i, lead in enumerate(leads):
+        for field in ("name", "name_normalized"):
+            if not lead.get(field):
+                raise RepositoryError(
+                    f"Verified lead at index {i} missing required field: {field}"
+                )
+    client = get_client()
+    result = client.table("verified_leads").insert(leads).execute()
+    if not result.data:
+        raise RepositoryError(
+            f"Batch insert returned no rows ({len(leads)} verified leads submitted)"
+        )
+    return result.data
+
+
+def get_verified_leads(
+    city: Optional[str] = None,
+    batch_id: Optional[str] = None,
+    min_quality_score: Optional[int] = None,
+    limit: int = 1000,
+    offset: int = 0,
+) -> list[dict]:
+    """Query verified leads with optional filters."""
+    client = get_client()
+    query = client.table("verified_leads").select("*")
+    if city is not None:
+        query = query.eq("city", city)
+    if batch_id is not None:
+        query = query.eq("verification_batch_id", batch_id)
+    if min_quality_score is not None:
+        query = query.gte("lead_quality_score", min_quality_score)
+    query = query.range(offset, offset + limit - 1)
+    result = query.execute()
+    return result.data or []
+
+
+def get_verified_lead(lead_id: str) -> Optional[dict]:
+    """Fetch a single verified lead by id."""
+    client = get_client()
+    result = (
+        client.table("verified_leads")
+        .select("*")
+        .eq("id", lead_id)
+        .maybe_single()
+        .execute()
+    )
+    return result.data
+
+
+def update_verified_lead(lead_id: str, updates: dict) -> Optional[dict]:
+    """Update a verified lead by id."""
+    client = get_client()
+    result = (
+        client.table("verified_leads")
+        .update(updates)
+        .eq("id", lead_id)
+        .execute()
+    )
+    if not result.data:
+        logger.warning("update_verified_lead: no row matched id=%s", lead_id)
+        return None
+    return result.data[0]
+
+
+def count_verified_leads(batch_id: Optional[str] = None) -> int:
+    """Count verified leads, optionally filtered by batch_id."""
+    client = get_client()
+    query = client.table("verified_leads").select("id", count="exact")
+    if batch_id is not None:
+        query = query.eq("verification_batch_id", batch_id)
+    result = query.execute()
+    return result.count or 0
+
+
+# ---------------------------------------------------------------------------
+# packs
+# ---------------------------------------------------------------------------
+
+def insert_pack(pack: dict) -> dict:
+    """Insert a new pack. Returns the inserted row."""
+    if not pack.get("pack_id"):
+        raise RepositoryError("Pack missing required field: pack_id")
+    client = get_client()
+    result = client.table("packs").insert(pack).execute()
+    return _safe_first(result.data, f"packs insert pack_id={pack.get('pack_id', '?')}")
+
+
+def get_pack(pack_id: str) -> Optional[dict]:
+    """Fetch a single pack by pack_id."""
+    client = get_client()
+    result = (
+        client.table("packs")
+        .select("*")
+        .eq("pack_id", pack_id)
+        .maybe_single()
+        .execute()
+    )
+    return result.data
+
+
+def get_sellable_packs(limit: int = 100) -> list[dict]:
+    """Fetch packs where sellable=true."""
+    client = get_client()
+    result = (
+        client.table("packs")
+        .select("*")
+        .eq("sellable", True)
+        .limit(limit)
+        .execute()
+    )
+    return result.data or []
+
+
+def update_pack(pack_id: str, updates: dict) -> Optional[dict]:
+    """Update a pack by pack_id."""
+    client = get_client()
+    result = (
+        client.table("packs")
+        .update(updates)
+        .eq("pack_id", pack_id)
+        .execute()
+    )
+    if not result.data:
+        logger.warning("update_pack: no row matched pack_id=%s", pack_id)
+        return None
+    return result.data[0]
+
+
+# ---------------------------------------------------------------------------
+# pack_entries
+# ---------------------------------------------------------------------------
+
+def insert_pack_entries_batch(entries: list[dict]) -> list[dict]:
+    """Insert multiple pack entries in one request."""
+    if not entries:
+        return []
+    client = get_client()
+    result = client.table("pack_entries").insert(entries).execute()
+    if not result.data:
+        raise RepositoryError(
+            f"Batch insert returned no rows ({len(entries)} pack entries submitted)"
+        )
+    return result.data
+
+
+def get_pack_entries(pack_id: str) -> list[dict]:
+    """Fetch all entries for a pack."""
+    client = get_client()
+    result = (
+        client.table("pack_entries")
+        .select("*")
+        .eq("pack_id", pack_id)
+        .execute()
+    )
+    return result.data or []
+
+
+# ---------------------------------------------------------------------------
+# pipeline_events
+# ---------------------------------------------------------------------------
+
+def log_pipeline_event(
+    batch_id: str,
+    event_type: str,
+    payload: Optional[dict] = None,
+) -> dict:
+    """Log a pipeline event. Returns the inserted row."""
+    client = get_client()
+    row = {
+        "batch_id": batch_id,
+        "event_type": event_type,
+        "payload": payload or {},
+    }
+    result = client.table("pipeline_events").insert(row).execute()
+    return _safe_first(result.data, f"pipeline_events insert batch_id={batch_id}")
+
+
+def get_pipeline_events(
+    batch_id: str,
+    event_type: Optional[str] = None,
+    limit: int = 100,
+) -> list[dict]:
+    """Query pipeline events for a batch."""
+    client = get_client()
+    query = (
+        client.table("pipeline_events")
+        .select("*")
+        .eq("batch_id", batch_id)
+    )
+    if event_type is not None:
+        query = query.eq("event_type", event_type)
+    query = query.limit(limit)
+    result = query.execute()
+    return result.data or []

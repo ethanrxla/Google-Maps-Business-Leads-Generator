@@ -1,0 +1,79 @@
+# Lead Intelligence Configuration
+
+system:
+  debug: false
+  log_level: INFO
+  cache_enabled: true
+
+lead_harvesting:
+  max_results: 100
+  timeout: 30
+  rate_limit: 10
+
+enrichment:
+  email_verification: true
+  social_profiling: true
+  technographic_analysis: true
+
+scoring:
+  min_score: 50
+  weights:
+    email_quality: 0.3
+    company_size: 0.2
+    industry_fit: 0.3
+    engagement: 0.2
+
+export:
+  formats: [csv, json, xlsx]
+  crm_integration: true
+
+
+  # Lead Generation Configuration
+
+lead_generation:
+  min_qualification_score: 60
+  max_leads_per_company: 1000
+  email_verification: true
+  data_enrichment: true
+  
+  department_scores:
+    executive: 25
+    sales: 20
+    marketing: 18
+    engineering: 15
+    it: 12
+    finance: 10
+    hr: 8
+    operations: 8
+  
+  title_scores:
+    ceo: 30
+    cto: 28
+    vp: 25
+    director: 22
+    manager: 18
+    senior: 15
+    lead: 12
+
+theharvester:
+  # Use a low-noise, key-less set by default; avoid unsupported engines
+  sources: ["duckduckgo", "crtsh", "otx", "rapiddns", "threatminer", "waybackarchive"]
+  limit: 50
+  timeout: 120
+  path: "/home/neo/leads/.venv/bin/theHarvester"
+
+export:
+  formats: ["salesforce", "hubspot", "marketing", "analytics"]
+  create_timestamp_files: true
+  compress_exports: false
+
+enrichment:
+  use_linkedin: true
+  use_clearbit: false
+  use_hunter: false
+  rate_limit_delay: 2
+
+wsl:
+  optimized_paths: true
+  windows_export: true
+  max_threads: 3

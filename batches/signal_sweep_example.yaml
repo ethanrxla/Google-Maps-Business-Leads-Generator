@@ -1,0 +1,12 @@
+# Mixed-source sweep: coffee + cafes (can add theHarvester later)
+batch_type: signal_sweep
+city: Oakland
+state: CA
+country: US
+niche: coffee
+query: "coffee shops and cafes in Oakland CA"
+limit: 40
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

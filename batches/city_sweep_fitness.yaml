@@ -1,0 +1,12 @@
+# Fitness studios and gyms — gyms, crossfit, pilates, cycling
+batch_type: city_sweep
+city: Austin
+state: TX
+country: US
+niche: fitness
+query: "fitness studios and gyms in Austin TX"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

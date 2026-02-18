@@ -1,0 +1,12 @@
+# HVAC and plumbing — home service contractors
+batch_type: city_sweep
+city: Phoenix
+state: AZ
+country: US
+niche: hvac_plumbing
+query: "HVAC and plumbing companies in Phoenix AZ"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

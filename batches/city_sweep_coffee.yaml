@@ -1,0 +1,12 @@
+# Coffee shops and roasters — local cafes, roasteries
+batch_type: city_sweep
+city: Portland
+state: OR
+country: US
+niche: coffee
+query: "coffee shops and roasters in Portland OR"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

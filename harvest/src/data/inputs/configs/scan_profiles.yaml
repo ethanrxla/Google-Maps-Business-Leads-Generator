@@ -1,0 +1,38 @@
+profiles:
+  quick:
+    name: "Quick Scan"
+    description: "Rapid reconnaissance with basic sources"
+    sources: ["google", "bing"]
+    limit: 100
+    timeout: 600
+    dns_bruteforce: false
+    output_formats: ["json", "csv"]
+    
+  standard:
+    name: "Standard Scan" 
+    description: "Balanced scan with comprehensive sources"
+    sources: ["google", "bing", "linkedin", "github"]
+    limit: 500
+    timeout: 1800
+    dns_bruteforce: true
+    output_formats: ["json", "csv", "md"]
+    
+  comprehensive:
+    name: "Comprehensive Scan"
+    description: "Thorough investigation with all available sources"
+    sources: ["all"]
+    limit: 1000
+    timeout: 3600
+    dns_bruteforce: true
+    dns_tld_expansion: true
+    output_formats: ["json", "csv", "md", "html"]
+    
+  stealth:
+    name: "Stealth Scan"
+    description: "Slower scan to avoid detection"
+    sources: ["google", "bing"]
+    limit: 50
+    timeout: 3600
+    delay: 10
+    dns_bruteforce: false
+    output_formats: ["json"]

@@ -1,0 +1,12 @@
+# Breweries and taprooms — craft beer
+batch_type: city_sweep
+city: Asheville
+state: NC
+country: US
+niche: breweries
+query: "breweries and taprooms in Asheville NC"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

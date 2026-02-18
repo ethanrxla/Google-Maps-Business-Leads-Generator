@@ -1,0 +1,12 @@
+# Hair salons and barbershops
+batch_type: city_sweep
+city: Nashville
+state: TN
+country: US
+niche: salons
+query: "hair salons and barbershops in Nashville TN"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

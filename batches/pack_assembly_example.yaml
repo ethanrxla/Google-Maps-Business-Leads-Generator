@@ -1,0 +1,10 @@
+batch_type: pack_assembly
+city: Jacksonville
+state: FL
+country: US
+niche: marketing_agency
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

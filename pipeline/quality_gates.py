@@ -5,31 +5,9 @@ Each gate returns a failure reason string or None if passed.
 The top-level check_quality_gates() returns (pass: bool, failures: list[str]).
 """
 
-import re
 from typing import Optional
 
-# Image file patterns that should never be emails
-_IMAGE_EMAIL_RE = re.compile(
-    r"\.(png|jpg|jpeg|gif|svg|ico|webp|bmp)$", re.IGNORECASE
-)
-_INVALID_EMAIL_TOKENS = frozenset({
-    "sentry", "wixpress", "cloudflare", "example.com", "test@", "noreply@",
-})
-
-
-def is_invalid_email(email: str) -> bool:
-    """Check if an email is obviously invalid (image sprites, sentry tokens, etc.)."""
-    if not email or not isinstance(email, str):
-        return True
-    email_lower = email.strip().lower()
-    if not email_lower or "@" not in email_lower:
-        return True
-    if _IMAGE_EMAIL_RE.search(email_lower):
-        return True
-    for token in _INVALID_EMAIL_TOKENS:
-        if token in email_lower:
-            return True
-    return False
+from pipeline.email_validator import is_invalid_email  # noqa: F401 -- re-exported
 
 
 # ---------------------------------------------------------------------------

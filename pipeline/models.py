@@ -13,7 +13,7 @@ Source enum policy:
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 
@@ -43,6 +43,39 @@ def validate_source(source: str) -> str:
             f"Invalid source '{source}'. Must be one of: {sorted(VALID_SOURCES)}"
         )
     return source
+
+
+_SOURCE_ALIASES = {
+    "google": "google_places",
+    "maps": "google_places",
+    "places": "google_places",
+    "google_maps": "google_places",
+    "twitter": "serp",
+    "twitter search": "serp",
+    "x search": "serp",
+    "search": "serp",
+    "harvester": "theharvester",
+    "the_harvester": "theharvester",
+    "html": "html_scrape",
+    "scrape": "html_scrape",
+    "crawl": "html_scrape",
+    "web_scrape": "html_scrape",
+}
+
+
+def normalize_source(source: Optional[str]) -> str:
+    """Normalize legacy source values to canonical VALID_SOURCES."""
+    if source is None:
+        return "manual"
+    raw = source.strip()
+    if not raw:
+        return "manual"
+    lowered = raw.lower()
+    if lowered in VALID_SOURCES:
+        return lowered
+    if lowered in _SOURCE_ALIASES:
+        return _SOURCE_ALIASES[lowered]
+    return raw
 
 
 def validate_status(status: str) -> str:
@@ -103,6 +136,7 @@ class Candidate:
     dedup_key: Optional[str] = None
 
     def __post_init__(self):
+        self.source = normalize_source(self.source)
         validate_source(self.source)
         validate_status(self.status)
 
@@ -192,6 +226,82 @@ class VerifiedLead:
     verification_sources: list[str] = field(default_factory=list)
     data_freshness_days: int = 0
     provenance: dict = field(default_factory=dict)
+
+    def to_dict(self) -> dict:
+        """Convert to dict for Supabase insert, dropping None values."""
+        d = {}
+        for k, v in self.__dict__.items():
+            if v is None:
+                continue
+            if isinstance(v, datetime):
+                d[k] = v.isoformat()
+            else:
+                d[k] = v
+        d.pop("id", None)
+        return d
+
+
+# Canonical enrichment tier values
+VALID_ENRICHMENT_TIERS = frozenset({"basic", "enriched"})
+
+
+def validate_enrichment_tier(tier: str) -> str:
+    """Validate and return enrichment tier, raising ValueError if invalid."""
+    if tier not in VALID_ENRICHMENT_TIERS:
+        raise ValueError(
+            f"Invalid enrichment_tier '{tier}'. "
+            f"Must be one of: {sorted(VALID_ENRICHMENT_TIERS)}"
+        )
+    return tier
+
+
+@dataclass
+class Pack:
+    """Stage 3: Assembled lead pack ready for sale.
+
+    Corresponds to the `packs` Supabase table.
+    """
+
+    # Identity
+    pack_id: str
+    niche: str
+    city: str
+
+    # Location
+    state: Optional[str] = None
+    country: str = "US"
+
+    # Pack contents
+    lead_count: int = 0
+    enrichment_tier: str = "basic"
+
+    # Quality metrics
+    email_coverage: float = 0.0
+    phone_coverage: float = 0.0
+    avg_lead_quality_score: float = 0.0
+    avg_needs_score: float = 0.0
+
+    # Sellability
+    sellable: bool = False
+    quality_gate_failures: list[str] = field(default_factory=list)
+
+    # Timestamps
+    assembled_at: Optional[datetime] = None
+    expires_at: Optional[datetime] = None
+
+    # File paths
+    csv_path: Optional[str] = None
+    jsonl_path: Optional[str] = None
+
+    # Auto-generated
+    id: Optional[str] = None
+
+    def __post_init__(self):
+        validate_enrichment_tier(self.enrichment_tier)
+        if self.assembled_at is None:
+            self.assembled_at = datetime.now(tz=None)
+        if self.expires_at is None:
+            self.expires_at = self.assembled_at + timedelta(days=90)
 
     def to_dict(self) -> dict:
         """Convert to dict for Supabase insert, dropping None values."""

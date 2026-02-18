@@ -1,0 +1,13 @@
+# Root runtime deps for leads pipeline sanity/smoke checks
+supabase
+python-dotenv
+psycopg[binary]
+
+# Leadgen runtime deps required for CLI/bootstrap imports
+beautifulsoup4
+requests
+pandas
+pyyaml
+
+# Lightweight test runner for sanity target
+pytest

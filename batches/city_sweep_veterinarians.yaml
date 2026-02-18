@@ -1,0 +1,12 @@
+# Veterinarians and animal hospitals
+batch_type: city_sweep
+city: Seattle
+state: WA
+country: US
+niche: veterinarians
+query: "veterinarians and animal hospitals in Seattle WA"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

@@ -33,3 +33,19 @@ Thumbs.db
 .coverage
 htmlcov/
 nul
+
+# Generated data
+data/outputs/
+data/packs/
+data/packs.zip
+data/sample_html/
+
+# Runtime artifacts
+tmp_runs/
+*.summary.json
+
+# Third-party clones
+harvest/theHarvester/
+
+# Claude Code
+.claude/

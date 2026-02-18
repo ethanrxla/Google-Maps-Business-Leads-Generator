@@ -1,0 +1,12 @@
+# Accounting and bookkeeping — small firms, CPAs
+batch_type: city_sweep
+city: Charlotte
+state: NC
+country: US
+niche: accounting
+query: "accounting and bookkeeping firms in Charlotte NC"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

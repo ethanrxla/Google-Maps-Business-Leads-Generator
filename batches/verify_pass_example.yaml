@@ -1,0 +1,9 @@
+batch_type: verify_pass
+city: Austin
+state: TX
+country: US
+niche: roofing
+enrichment_tier: enriched
+sources:
+  - google_places
+max_freshness_days: 90

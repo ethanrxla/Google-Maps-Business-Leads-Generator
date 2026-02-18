@@ -1,0 +1,12 @@
+# Wellness — yoga studios, physical therapy, chiropractors
+batch_type: city_sweep
+city: Boulder
+state: CO
+country: US
+niche: wellness
+query: "yoga studios and physical therapy in Boulder CO"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

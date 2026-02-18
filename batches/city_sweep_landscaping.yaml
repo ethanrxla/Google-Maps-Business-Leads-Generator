@@ -1,0 +1,12 @@
+# Landscaping and lawn care
+batch_type: city_sweep
+city: Atlanta
+state: GA
+country: US
+niche: landscaping
+query: "landscaping and lawn care companies in Atlanta GA"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90

@@ -1,0 +1,12 @@
+# Auto repair and mechanics — independent shops, not dealerships
+batch_type: city_sweep
+city: Denver
+state: CO
+country: US
+niche: auto_repair
+query: "auto repair shops in Denver CO"
+limit: 50
+enrichment_tier: basic
+sources:
+  - google_places
+max_freshness_days: 90
