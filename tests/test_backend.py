@@ -226,6 +226,10 @@ def test_start_pack_creates_checkout_session_and_returns_url(monkeypatch):
         created["cancel_url"] = cancel_url
         return {"url": "https://example.com/checkout"}
 
+    def fake_generate_pack(**kwargs):
+        return {"pack_id": kwargs["pack_id"], "sellable": True}
+
+    monkeypatch.setattr("leadgen.generator.generate_pack", fake_generate_pack)
     monkeypatch.setattr(stripe_utils, "create_checkout_session", fake_create_checkout_session)
     monkeypatch.setattr(stripe_utils.config, "frontend_base_url", "https://frontend.test")
     monkeypatch.setattr(stripe_utils.config, "stripe_price_id", "price_123")

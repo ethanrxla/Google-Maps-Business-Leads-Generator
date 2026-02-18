@@ -50,6 +50,9 @@ class LeadEnricher:
             return None
         try:
             result = fn(*args, **kwargs)
+            if isinstance(result, dict) and result.get("rate_limited"):
+                logger.warning("Enrichment rate-limited: %s", result)
+                return result
             if is_enrichment_error(result):
                 logger.warning("Enrichment returned error payload: %s", result)
                 return None
