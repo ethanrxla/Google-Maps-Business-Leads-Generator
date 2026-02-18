@@ -9,5 +9,11 @@ requests
 pandas
 pyyaml
 
+# Backend server
+fastapi
+uvicorn[standard]
+stripe
+
 # Lightweight test runner for sanity target
 pytest
+httpx

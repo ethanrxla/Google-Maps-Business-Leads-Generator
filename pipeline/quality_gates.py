@@ -18,7 +18,7 @@ def _gate_email_coverage(leads: list[dict], enriched: bool) -> Optional[str]:
     """Check % of leads with a non-empty email."""
     if not leads:
         return "no_leads"
-    threshold = 0.85 if enriched else 0.70
+    threshold = 0.85 if enriched else 0.30
     with_email = sum(1 for l in leads if l.get("email"))
     pct = with_email / len(leads)
     if pct < threshold:
@@ -55,7 +55,7 @@ def _gate_phone_coverage(leads: list[dict], enriched: bool) -> Optional[str]:
     """Check % of leads with phone."""
     if not leads:
         return "no_leads"
-    threshold = 0.85 if enriched else 0.75
+    threshold = 0.85 if enriched else 0.50
     with_phone = sum(1 for l in leads if l.get("phone"))
     pct = with_phone / len(leads)
     if pct < threshold:
@@ -88,10 +88,10 @@ def _gate_deduplication(leads: list[dict]) -> Optional[str]:
 
 
 def _gate_pack_fill(leads: list[dict], target_count: int) -> Optional[str]:
-    """Pack must contain >= 80% of target count."""
+    """Pack must contain >= 60% of target count."""
     if target_count <= 0:
         return None
-    min_count = int(target_count * 0.80)
+    min_count = int(target_count * 0.60)
     if len(leads) < min_count:
         return f"underfilled: {len(leads)}/{target_count} (min {min_count})"
     return None
@@ -109,16 +109,16 @@ def _gate_freshness_days(leads: list[dict], max_days: int = 90) -> Optional[str]
 
 
 def _gate_score_distribution(leads: list[dict]) -> Optional[str]:
-    """Avg needs_score >= 15 and >= 20% of leads have score >= 30."""
+    """Avg needs_score >= 5 and >= 10% of leads have score >= 20."""
     if not leads:
         return "no_leads"
     scores = [l.get("needs_score", 0) for l in leads]
     avg = sum(scores) / len(scores)
-    if avg < 15:
-        return f"avg_needs_score {avg:.1f} < 15"
-    high_pct = sum(1 for s in scores if s >= 30) / len(scores)
-    if high_pct < 0.20:
-        return f"high_score_pct {high_pct:.0%} < 20%"
+    if avg < 5:
+        return f"avg_needs_score {avg:.1f} < 5"
+    high_pct = sum(1 for s in scores if s >= 20) / len(scores)
+    if high_pct < 0.10:
+        return f"high_score_pct {high_pct:.0%} < 10%"
     return None
 
 

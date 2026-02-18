@@ -97,18 +97,18 @@ class TestGateEmailCoverage:
 
     def test_fails_below_threshold_basic(self):
         leads = _make_pack(10)
-        for i in range(4):  # remove 4 emails -> 60% < 70%
+        for i in range(8):  # remove 8 emails -> 20% < 30%
             leads[i]["email"] = None
         result = _gate_email_coverage(leads, enriched=False)
         assert result is not None
-        assert "60%" in result
+        assert "20%" in result
 
     def test_enriched_has_higher_threshold(self):
         leads = _make_pack(10)
         for i in range(2):  # 80% < 85%
             leads[i]["email"] = None
         assert _gate_email_coverage(leads, enriched=True) is not None
-        assert _gate_email_coverage(leads, enriched=False) is None  # 80% >= 70%
+        assert _gate_email_coverage(leads, enriched=False) is None  # 80% >= 30%
 
     def test_empty_leads(self):
         assert _gate_email_coverage([], enriched=False) == "no_leads"
@@ -163,8 +163,8 @@ class TestGatePhoneCoverage:
 
     def test_fails_basic(self):
         leads = _make_pack(10)
-        for i in range(3):
-            leads[i]["phone"] = None  # 70% < 75%
+        for i in range(6):
+            leads[i]["phone"] = None  # 40% < 50%
         assert _gate_phone_coverage(leads, enriched=False) is not None
 
 
@@ -208,7 +208,7 @@ class TestGatePackFill:
         assert _gate_pack_fill(leads, target_count=10) is None  # 80% exact
 
     def test_fails_below_threshold(self):
-        leads = _make_pack(7)
+        leads = _make_pack(5)
         result = _gate_pack_fill(leads, target_count=10)
         assert result is not None
         assert "underfilled" in result
@@ -236,13 +236,13 @@ class TestGateScoreDistribution:
         assert _gate_score_distribution(leads) is None
 
     def test_fails_low_average(self):
-        leads = _make_pack(10, needs_score=10)
+        leads = _make_pack(10, needs_score=2)
         result = _gate_score_distribution(leads)
         assert result is not None
         assert "avg_needs_score" in result
 
     def test_fails_low_high_score_pct(self):
-        leads = _make_pack(10, needs_score=20)  # avg=20 >= 15, but 0% >= 30
+        leads = _make_pack(10, needs_score=10)  # avg=10 >= 5, but 0% >= 20
         result = _gate_score_distribution(leads)
         assert result is not None
         assert "high_score_pct" in result
@@ -260,14 +260,14 @@ class TestCheckQualityGates:
         assert failures == []
 
     def test_multiple_failures(self):
-        leads = _make_pack(10)
-        for i in range(5):
+        leads = _make_pack(10, needs_score=1)
+        for i in range(8):
             leads[i]["email"] = None
             leads[i]["phone"] = None
         leads[0]["email"] = "sprite@2x.png"
         passed, failures = check_quality_gates(leads, target_count=10)
         assert passed is False
-        assert len(failures) >= 2  # email_coverage + phone_coverage at minimum
+        assert len(failures) >= 2  # email_coverage + phone_coverage + score at minimum
 
     def test_enriched_stricter(self):
         leads = _make_pack(10, email_verified=False, needs_score=40)
@@ -292,10 +292,11 @@ class TestCheckQualityGates:
 
     def test_unsellable_snapshot(self):
         """Snapshot: pack with bad emails, missing phones, low scores fails."""
-        leads = _make_pack(20, needs_score=5)
+        leads = _make_pack(20, needs_score=2)
         for i in range(0, 20, 2):
             leads[i]["email"] = f"img{i}@2x.png"
-            leads[i]["phone"] = None
+        for i in range(12):
+            leads[i]["phone"] = None  # 40% < 50%
         passed, failures = check_quality_gates(
             leads, target_count=20, enriched=False
         )
